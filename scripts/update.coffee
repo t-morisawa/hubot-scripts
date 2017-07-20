@@ -1,19 +1,23 @@
 child_process = require 'child_process'
 
 module.exports = (robot) ->
-  robot.hear /bot.*update/, (bot) ->
+  robot.hear /update/i, (bot) ->
     try
-      robot.adapter.notice bot.envelope, "updating..."
-      child_process.exec 'git pull origin master', (error, stdout, stderr) ->
+      bot.send "updating..."
+      child_process.exec 'GIT_DIR=hubot-scripts/.git git pull origin master', (error, stdout, stderr) ->
         if error
-          robot.adapter.notice bot.envelope, "git pull failed: " + stderr
+          robot.logger.debug
+          bot.send "git pull failed: " + stderr
         else
           output = stdout+''
+
           if not /Already up\-to\-date/.test output
-            robot.adapter.notice bot.envelope, "bot updated" + output
-            robot.adapter.notice bot.envelope, "to be rebooted."
+            robot.logger.debug "bot updated" + output
+            bot.send "bot updated" + output
             process.exit()
           else
-            robot.adapter.notice bot.envelope, "up-to-date"
+            bot.send "up-to-date"
+            robot.logger.debug "up-to-date"
     catch e
-      robot.adapter.notice bot.envelope, "git pull failed:" + e
+      robot.logger.debug "git pull failed:" + e
+      bot.send "git pull failed: " + stderr
